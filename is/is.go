@@ -96,7 +96,8 @@ func (ei Encoded) dataProcImmInstr() Instr {
 		return DecodeADDSUBImm(ei)
 
 	case 4: // logical
-		return nil
+		return DecodeLogicImm(ei)
+
 	case 5: //move wide
 		return nil
 	case 7:

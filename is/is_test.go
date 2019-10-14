@@ -155,9 +155,56 @@ func TestString(t *testing.T) {
 				str: "SUBS X1, X1, #4095",
 			},
 		},
+		//
+		// NOTE: the encoding of immediate values in logic
+		// class operations is f-ing hard.
+		//
 		"logic" : []tcase{
 			{
-
+				//https://gist.github.com/dinfuehr/51a01ac58c0b23e4de9aac313ed6a06a#file-aarch64-logical-immediates-txt-L1303
+				i: 0x12000000,
+				str: "AND W0, W0, #0x1",
+			},
+			{
+				// https://gist.github.com/dinfuehr/51a01ac58c0b23e4de9aac313ed6a06a#file-aarch64-logical-immediates-txt-L529
+				i: 0x121A1800,
+				str: "AND W0, W0, #0x1fc0",
+			},
+			{
+				i: 0x321A1800,
+				str: "ORR W0, W0, #0x1fc0",
+			},
+			{
+				i: 0x521A1800,
+				str: "EOR W0, W0, #0x1fc0",
+			},
+			{
+				i: 0x721A1800,
+				str: "ANDS W0, W0, #0x1fc0",
+			},
+			{
+				i: 0x721A1800,
+				str: "ANDS W0, W0, #0x1fc0",
+			},
+			{
+				i: 0x721A1800,
+				str: "ANDS W0, W0, #0x1fc0",
+			},
+			{
+				i: 0x721A181F,
+				str: "ANDS WSP, W0, #0x1fc0",
+			},
+			{
+				i: 0x92400000,
+				str: "AND X0, X0, #0x1",
+			},
+			{
+				i: 0x924003e0,
+				str: "AND X0, SP, #0x1",
+			},
+			{
+				i: 0x927757E0,
+				str: "AND X0, SP, #0x7ffffe00",
 			},
 		},
 	}
