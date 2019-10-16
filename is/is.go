@@ -15,34 +15,42 @@ func (ei Encoded) bit(n int) bool {
 	return ei>>n&1 == 1
 }
 
-func (ei Encoded) int32(n, l int) int32 {
+func (ei Encoded) int64(n, l int) int64 {
 	// sign extended
-	ret := int32(ei) << int32(32 - (n + l))
-	ret = ret >> int32(32 - (n + l) + n)
+	ret := int64(ei) << int64(64 - (n + l))
+	ret = ret >> int64(64 - (n + l) + n)
 	return ret
+}
+
+func (ei Encoded) int32(n, l int) int32 {
+	return int32(ei.int64(n, l))
 }
 
 func (ei Encoded) int16(n, l int) int16 {
-	return int16(ei.int32(n, l))
+	return int16(ei.int64(n, l))
 }
 
 func (ei Encoded) int8(n, l int) int8 {
-	return int8(ei.int32(n, l))
+	return int8(ei.int64(n, l))
 }
 
 
-func (ei Encoded) uint32(n, l int) uint32 {
-	ret := uint32(ei) << uint32(32 - (n + l))
-	ret = ret >> uint32(32 - (n + l) + n)
+func (ei Encoded) uint64(n, l int) uint64 {
+	ret := uint64(ei) << uint64(64 - (n + l))
+	ret = ret >> uint64(64 - (n + l) + n)
 	return ret
 }
 
+func (ei Encoded) uint32(n, l int) uint32 {
+	return uint32(ei.uint64(n, l))
+}
+
 func (ei Encoded) uint16(n, l int) uint16 {
-	return uint16(ei.uint32(n, l))
+	return uint16(ei.uint64(n, l))
 }
 
 func (ei Encoded) byte(n, l int) byte {
-	return byte(ei.uint32(n, l))
+	return byte(ei.uint64(n, l))
 }
 
 
@@ -107,19 +115,66 @@ func (ei Encoded) dataProcImmInstr() Instr {
 	}
 }
 
-func (i Encoded) branchInstr() Instr {
+func (ei Encoded) branchInstr() Instr {
+	op0 := ei.byte(29, 3)
+	op1 := ei.byte(22, 4)
+
+	switch {
+	case op0 == 2 && op1 & 8 == 0:
+		return DecodeBranchCondImm(ei)
+
+	case op0 == 2 && op1 & 8 == 8:
+		return UnallocInstr(
+			fmt.Sprintf("unallocated instruction: %x", uint(ei)))
+
+	case op0 == 6 && op1 & 12 == 0:
+		// exception generation
+		return DecodeExceptionGeneration(ei)
+
+	case op0 == 6 && op1 & 4 == 4:
+		// system
+		return nil
+
+	case op0 == 6 && op1 == 5:
+		fallthrough
+	case op0 == 6 && op1 & 14 == 6:
+		return UnallocInstr(
+			fmt.Sprintf("unallocated instruction: %x", uint(ei)))
+
+	case op0 == 6 && op1 & 8 == 8:
+		// unconditional branch reg
+		return DecodeBranchUncondReg(ei)
+
+	case op0 & 3 == 0:
+		// uncond branch imm
+		return nil
+
+	case op0 & 3 == 1 && op1 & 8 == 0:
+		// compare and branch imm
+		return nil
+
+	case op0 & 3 == 1 && op1 & 8 == 8:
+		// test and branch
+		return nil
+
+	case op0 & 3 == 3:
+		return UnallocInstr(
+			fmt.Sprintf("unallocated instruction: %x", uint(ei)))
+
+	default:
+		panic("unreachable")
+	}
+}
+
+func (ei Encoded) memInstr() Instr {
+	return nil
+
+}
+
+func (ei Encoded) dataProcRegInstr() Instr {
 	return nil
 }
 
-func (i Encoded) memInstr() Instr {
-	return nil
-
-}
-
-func (i Encoded) dataProcRegInstr() Instr {
-	return nil
-}
-
-func (i Encoded) dataProcFpInstr() Instr {
+func (ei Encoded) dataProcFpInstr() Instr {
 	return nil
 }

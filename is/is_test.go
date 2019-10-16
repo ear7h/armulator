@@ -207,6 +207,39 @@ func TestString(t *testing.T) {
 				str: "AND X0, SP, #0x7ffffe00",
 			},
 		},
+		"branch": []tcase {
+			// branch imm
+			{ // 0
+				i: 0x5400000f,
+				str: "BAL #0",
+			},
+			{ // 1
+				i: 0x5400000e,
+				str: "BAL #0",
+			},
+			{ // 2
+				i: 0x54000020,
+				str: "BEQ #4",
+			},
+			{ // 3
+				i: 0x54ffffe0,
+				str: "BEQ #-4",
+			},
+			// syscalls
+			{ // 4
+				i: 0xd4000001,
+				str: "SVC #0",
+			},
+			// unconditional branch reg
+			{ // 5
+				i: 0xd61f0060,
+				str: "BR X3",
+			},
+			{ // 6
+				i: 0xd65f0000,
+				str: "RET X0",
+			},
+		},
 	}
 
 	for k, v := range tcases {
